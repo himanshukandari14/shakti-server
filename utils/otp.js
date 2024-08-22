@@ -1,38 +1,32 @@
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-require('dotenv').config();
-
-const transporter = nodemailer.createTransport({
-  service: 'Gmail',  // Use your email service
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-// Generate OTP
-const generateOTP = () => {
-  return crypto.randomInt(100000, 999999).toString();
+// Define and export the generateOTP function
+exports.generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // Generates a 6-digit OTP
 };
 
-// Send OTP via email
-const sendOTP = async (email, otp) => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: 'Your OTP Code',
-    text: `Your OTP code is ${otp}`,
-  };
+// Optionally, you can export sendOTP function if used
+exports.sendOTP = async (toEmail, otp) => {
+  const nodemailer = require('nodemailer');
+
+  const transporter = nodemailer.createTransport({
+    service: 'Gmail', 
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
 
   try {
-    await transporter.sendMail(mailOptions);
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: toEmail,
+      subject: 'Your OTP Code',
+      text: `Your OTP code is ${otp}`,
+    });
     console.log('OTP sent successfully');
   } catch (error) {
     console.error('Error sending OTP:', error);
   }
-};
-
-module.exports = {
-  generateOTP,
-  sendOTP,
 };
